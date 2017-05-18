@@ -1,0 +1,4 @@
+TOKEN = ""
+LIST_OF_ADMINS = []
+
+
