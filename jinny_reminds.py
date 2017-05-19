@@ -1,4 +1,5 @@
 import logging
+import calendar
 from datetime import date
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
                           ConversationHandler)
@@ -7,6 +8,7 @@ from telegram import replykeyboardremove
 from jinny_reminds_cfg import *
 from jinny_reminds_static import *
 from functools import wraps
+from itertools import islice
 
 
 # decorator to restrict the use of the functions from unauthorized users
@@ -42,7 +44,7 @@ def start(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_greeting,
                     reply_markup=markup)
 
-ITEM_NAME, END_DATE, REMIND_DATE = range(3)
+ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR = range(4)
 
 @restricted
 def add_new_memo(bot, update):
@@ -71,6 +73,61 @@ def remind_date(bot, update):
                     reply_markup=markup)
     return -1
 
+def gen_calendar_keyboard(yr, mth):
+    c = calendar.TextCalendar()
+    text_outputs = c.formatmonth(yr, mth).splitlines()
+    mth_text = text_outputs[0]
+
+    keyboard = []
+    keyboard.append([mth_text])
+    keyboard.append(text_outputs[1].split())
+
+    for row in islice(text_outputs, 2, len(text_outputs)):
+        days_of_month = row.split()
+        if (len(days_of_month)<7):
+            num_white_space = 7 - len(days_of_month)
+            if days_of_month[0] == "1":
+                for i in range(num_white_space):
+                    days_of_month = [" "] + days_of_month
+            else:
+                for i in range(num_white_space):
+                    days_of_month = days_of_month + [" "]
+        keyboard.append(days_of_month)
+
+    keyboard = [[button_prev_mth, button_next_mth]] + keyboard
+    return keyboard
+
+@restricted
+def end_date_calendar(bot, update):
+    calendar_date = date.today()
+    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=gen_calendar_keyboard(calendar_date.year, calendar_date.month))
+
+    logging.info("before send calendar")
+    # logging.info(markup_pkg)
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text=msg_pls_choose_date,
+                    reply_markup=markup)
+    logging.info("after send calendar")
+    return END_DATE_CALENDAR
+
+@restricted
+def end_date_prev_mth(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text=msg_pls_choose_date)
+    return END_DATE_CALENDAR
+
+@restricted
+def end_date_next_mth(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text=msg_pls_choose_date)
+    return END_DATE_CALENDAR
+
+@restricted
+def end_date_invalid(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text=msg_invalid_date_pick)
+    return END_DATE_CALENDAR
+
 def fallback(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_dont_understand)
     return None
@@ -86,7 +143,12 @@ def main():
 
     dispatcher.add_handler(ConversationHandler(entry_points=[RegexHandler(button_new_memo, add_new_memo)],
                                                states={ITEM_NAME: [MessageHandler(Filters.text, memo_name)],
-                                                       END_DATE: [MessageHandler(Filters.text,end_date)],
+                                                       END_DATE: [RegexHandler(button_specific_date, end_date_calendar),
+                                                                  MessageHandler(Filters.text,end_date)],
+                                                       END_DATE_CALENDAR: [RegexHandler('\d+', end_date),
+                                                                           RegexHandler('(' + button_prev_mth + '|' + button_next_mth + ')',
+                                                                                        end_date_prev_mth),
+                                                                           MessageHandler(Filters.text, end_date_invalid)],
                                                        REMIND_DATE: [MessageHandler(Filters.text, remind_date)]},
                                                fallbacks=[MessageHandler(Filters.text, fallback)],
                                                run_async_timeout=conv_time_out)

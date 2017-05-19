@@ -45,3 +45,8 @@ keyboard_remind_date=[[button_remind_1D, button_remind_3D, button_remind_1W],
 msg_done_add = "Done 啦。"
 
 msg_dont_understand = "唔明，請再試過啦。"
+
+button_prev_mth = "前一個月"
+button_next_mth = "後一個月"
+msg_pls_choose_date = "請選擇日子。"
+msg_invalid_date_pick = "呢個唔係日子，請從新選擇。"
