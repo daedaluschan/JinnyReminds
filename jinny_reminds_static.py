@@ -21,11 +21,12 @@ button_2M = "兩個月後"
 button_3M = "三個月後"
 button_6M = "半年後"
 button_1Y = "一年後"
-button_specific_date = "指定日子"
+button_specific_date = "用小日曆揀日期。"
 
-keyboard_end_date=[[button_1W, button_2W, button_3W],
+keyboard_end_date=[[button_specific_date],
+                   [button_1W, button_2W, button_3W],
                    [button_1M, button_2M, button_3M],
-                   [button_6M, button_1Y, button_specific_date]]
+                   [button_6M, button_1Y]]
 
 msg_remind_date = "到期前幾耐提你？"
 
@@ -36,11 +37,12 @@ button_remind_10D = "十日前"
 button_remind_2W = "兩星期前"
 button_remind_3W = "三星期前"
 button_remind_1M = "一個月前"
-button_remind_specific = "指定日子"
+button_remind_specific = "用小日曆揀日期。"
 
-keyboard_remind_date=[[button_remind_1D, button_remind_3D, button_remind_1W],
-                   [button_remind_10D, button_remind_2W, button_remind_3W],
-                   [button_remind_1M, button_remind_specific]]
+keyboard_remind_date=[[button_remind_specific],
+                      [button_remind_1D, button_remind_3D, button_remind_1W],
+                      [button_remind_10D, button_remind_2W, button_remind_3W],
+                      [button_remind_1M]]
 
 msg_done_add = "Done 啦。"
 
@@ -49,4 +51,8 @@ msg_dont_understand = "唔明，請再試過啦。"
 button_prev_mth = "前一個月"
 button_next_mth = "後一個月"
 msg_pls_choose_date = "請選擇日子。"
-msg_invalid_date_pick = "呢個唔係日子，請從新選擇。"
+msg_invalid_date_pick = "雖然個 UI 寫得唔係咁好，但呢個唔係一個日期，請 click 數字或轉月份。"
+
+msg_input_date = "輸入日期係：{}"
+
+msg_confirm_curr_mth = "{} 月。"
