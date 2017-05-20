@@ -1,6 +1,7 @@
 import logging
-import calendar
-from datetime import date
+#import calendar
+#from datetime import date
+from jinny_memo import *
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
                           ConversationHandler)
 from telegram import replykeyboardmarkup
@@ -10,6 +11,7 @@ from jinny_reminds_static import *
 from functools import wraps
 from itertools import islice
 
+memos = {}
 
 # decorator to restrict the use of the functions from unauthorized users
 def restricted(func):
@@ -50,10 +52,18 @@ ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR = range(4)
 def add_new_memo(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_memo_name,
                     reply_markup=replykeyboardremove.ReplyKeyboardRemove())
+
+    if update.message.chat_id in memos:
+        del memos[update.message.chat_id]
+
+    memos[update.message.chat_id] = memo()
+
     return ITEM_NAME
 
 @restricted
 def memo_name(bot, update):
+    memos[update.update.message.chat_id].memo_text = update.message.text
+
     markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_end_date)
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_end_date,
                     reply_markup=markup)
@@ -71,6 +81,8 @@ def remind_date(bot, update):
     markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_start)
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_done_add,
                     reply_markup=markup)
+
+    del memos[update.message.chat_id]
     return -1
 
 def gen_calendar_keyboard(yr, mth):
