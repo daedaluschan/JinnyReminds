@@ -55,4 +55,4 @@ msg_invalid_date_pick = "雖然個 UI 寫得唔係咁好，但呢個唔係一個
 
 msg_input_date = "輸入日期係：{}"
 
-msg_confirm_curr_mth = "{} 月。"
+msg_confirm_curr_mth = "{} 年 {} 月。"
