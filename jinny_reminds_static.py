@@ -1,4 +1,5 @@
 conv_time_out = 10
+poll_interval = 5
 
 msg_i_dont_know_u = "唔識你，唔同你講嘢。"
 log_i_dont_know_u = "唔識你（{}），唔同你講嘢。"
@@ -56,3 +57,4 @@ msg_invalid_date_pick = "雖然個 UI 寫得唔係咁好，但呢個唔係一個
 msg_input_date = "輸入日期係：{}"
 
 msg_confirm_curr_mth = "{} 年 {} 月。"
+msg_cannot_process_date_input = "認唔到呢個日子，請重新試過。"

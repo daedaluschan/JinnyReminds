@@ -1,6 +1,7 @@
 import logging
 #import calendar
 #from datetime import date
+from datetime import timedelta
 from jinny_memo import *
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
                           ConversationHandler)
@@ -12,6 +13,7 @@ from functools import wraps
 from itertools import islice
 
 memos = {}
+ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR = range(5)
 
 # decorator to restrict the use of the functions from unauthorized users
 def restricted(func):
@@ -46,8 +48,6 @@ def start(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_greeting,
                     reply_markup=markup)
 
-ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR = range(4)
-
 @restricted
 def add_new_memo(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_memo_name,
@@ -70,21 +70,12 @@ def memo_name(bot, update):
                     reply_markup=markup)
     return END_DATE
 
-@restricted
-def end_date(bot, update):
-    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_remind_date)
-    bot.sendMessage(chat_id=update.message.chat_id, text=msg_remind_date,
-                    reply_markup=markup)
-    return REMIND_DATE
-
-@restricted
-def remind_date(bot, update):
-    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_start)
-    bot.sendMessage(chat_id=update.message.chat_id, text=msg_done_add,
-                    reply_markup=markup)
-
-    del memos[update.message.chat_id]
-    return -1
+#@restricted
+#def end_date(bot, update):
+#    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_remind_date)
+#    bot.sendMessage(chat_id=update.message.chat_id, text=msg_remind_date,
+#                    reply_markup=markup)
+#    return REMIND_DATE
 
 def gen_calendar_keyboard(yr, mth):
     c = calendar.TextCalendar()
@@ -130,6 +121,10 @@ def set_end_date(bot, update, yyyy, mm, dd):
     bot.sendMessage(chat_id=update.message.chat_id,
                     text=msg_input_date.format(memos[update.message.chat_id].memo_end_date.__str__()))
 
+    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_remind_date)
+    bot.sendMessage(chat_id=update.message.chat_id, text=msg_remind_date,
+                    reply_markup=markup)
+
 @restricted
 def end_date_click_num(bot, update):
     set_end_date(bot, update,
@@ -137,13 +132,36 @@ def end_date_click_num(bot, update):
                  memos[update.message.chat_id].moving_mth,
                  int(update.message.text))
 
-    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_remind_date)
-    bot.sendMessage(chat_id=update.message.chat_id, text=msg_remind_date,
-                    reply_markup=markup)
     return REMIND_DATE
 
 @restricted
-def end_date_prev_mth(bot, update):
+def end_date_fix_tenor(bot, update):
+    reference_date = date.today()
+    if update.message.text == button_1W:
+        obj_date = reference_date + timedelta(days=7)
+    elif update.message.text == button_2W:
+        obj_date = reference_date + timedelta(days=14)
+    elif update.message.text == button_3W:
+        obj_date = reference_date + timedelta(days=21)
+    elif update.message.text == button_1M:
+        obj_date = reference_date + timedelta(days=30)
+    elif update.message.text == button_2M:
+        obj_date = reference_date + timedelta(days=60)
+    elif update.message.text == button_3M:
+        obj_date = reference_date + timedelta(days=91)
+    elif update.message.text == button_6M:
+        obj_date = reference_date + timedelta(days=182)
+    elif update.message.text == button_1Y:
+        obj_date = reference_date + timedelta(days=365)
+    else:
+        bot.sendMessage(chat_id=update.message.chat_id, text=msg_cannot_process_date_input)
+        return None
+
+    set_end_date(bot, update, obj_date.year, obj_date.month, obj_date.day)
+    return  REMIND_DATE
+
+@restricted
+def prev_mth(bot, update):
     curr_year = memos[update.message.chat_id].moving_year
     curr_mth = memos[update.message.chat_id].moving_mth
 
@@ -163,7 +181,7 @@ def end_date_prev_mth(bot, update):
     return None
 
 @restricted
-def end_date_next_mth(bot, update):
+def next_mth(bot, update):
     curr_year = memos[update.message.chat_id].moving_year
     curr_mth = memos[update.message.chat_id].moving_mth
 
@@ -194,10 +212,62 @@ def remind_date_calendar(bot, update):
     return REMIND_DATE_CALENDAR
 
 @restricted
+def set_remind_date(bot, update, yyyy, mm, dd):
+    obj_date = date(yyyy, mm, dd)
+    memos[update.message.chat_id].remind_date = obj_date
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text=msg_input_date.format(memos[update.message.chat_id].remind_date.__str__()))
+
+    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_start)
+    bot.sendMessage(chat_id=update.message.chat_id, text=msg_done_add,
+                    reply_markup=markup)
+
+    del memos[update.message.chat_id]
+
+@restricted
+def remind_date_click_num(bot, update):
+    set_remind_date(bot, update,
+                    memos[update.message.chat_id].moving_year,
+                    memos[update.message.chat_id].moving_mth,
+                    int(update.message.text))
+    return -1
+
+@restricted
+def remind_date_fix_tenor(bot, update):
+    reference_date = memos[update.message.chat_id].memo_end_date
+
+    if update.message.text == button_remind_1D:
+        obj_date = reference_date + timedelta(days=-1)
+    elif update.message.text == button_remind_3D:
+        obj_date = reference_date + timedelta(days=-3)
+    elif update.message.text == button_remind_1W:
+        obj_date = reference_date + timedelta(days=-7)
+    elif update.message.text == button_remind_10D:
+        obj_date = reference_date + timedelta(days=-10)
+    elif update.message.text == button_remind_2W:
+        obj_date = reference_date + timedelta(days=-14)
+    elif update.message.text == button_remind_3W:
+        obj_date = reference_date + timedelta(days=-21)
+    elif update.message.text == button_remind_1M:
+        obj_date = reference_date + timedelta(days=-30)
+    else:
+        bot.sendMessage(chat_id=update.message.chat_id, text=msg_cannot_process_date_input)
+        return None
+
+    set_remind_date(bot, update, obj_date.year, obj_date.month, obj_date.day)
+    return  -1
+
+@restricted
 def end_date_invalid(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id,
                     text=msg_invalid_date_pick)
     return END_DATE_CALENDAR
+
+@restricted
+def remind_date_invalid(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text=msg_invalid_date_pick)
+    return REMIND_DATE_CALENDAR
 
 def fallback(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_dont_understand)
@@ -215,13 +285,17 @@ def main():
     dispatcher.add_handler(ConversationHandler(entry_points=[RegexHandler(button_new_memo, add_new_memo)],
                                                states={ITEM_NAME: [MessageHandler(Filters.text, memo_name)],
                                                        END_DATE: [RegexHandler(button_specific_date, end_date_calendar),
-                                                                  MessageHandler(Filters.text,end_date)],
+                                                                  MessageHandler(Filters.text, end_date_fix_tenor)],
                                                        END_DATE_CALENDAR: [RegexHandler('\d+', end_date_click_num),
-                                                                           RegexHandler(button_prev_mth, end_date_prev_mth),
-                                                                           RegexHandler(button_next_mth, end_date_next_mth),
+                                                                           RegexHandler(button_prev_mth, prev_mth),
+                                                                           RegexHandler(button_next_mth, next_mth),
                                                                            MessageHandler(Filters.text, end_date_invalid)],
                                                        REMIND_DATE: [RegexHandler(button_remind_specific, remind_date_calendar),
-                                                                     MessageHandler(Filters.text, remind_date)]},
+                                                                     MessageHandler(Filters.text, remind_date_fix_tenor)],
+                                                       REMIND_DATE_CALENDAR: [RegexHandler('\d+', remind_date_click_num),
+                                                                              RegexHandler(button_prev_mth, prev_mth),
+                                                                              RegexHandler(button_next_mth, next_mth),
+                                                                              MessageHandler(Filters.text, remind_date_invalid)]},
                                                fallbacks=[MessageHandler(Filters.text, fallback)],
                                                run_async_timeout=conv_time_out)
                            )
