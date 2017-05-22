@@ -13,7 +13,7 @@ from functools import wraps
 from itertools import islice
 
 memos = {}
-ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR = range(5)
+ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR, SHOW_ALL = range(6)
 
 # decorator to restrict the use of the functions from unauthorized users
 def restricted(func):
@@ -222,6 +222,8 @@ def set_remind_date(bot, update, yyyy, mm, dd):
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_done_add,
                     reply_markup=markup)
 
+    memos[update.message.chat_id].save_data()
+
     del memos[update.message.chat_id]
 
 @restricted
@@ -273,6 +275,25 @@ def fallback(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_dont_understand)
     return None
 
+def show_all(bot, update):
+    keyboard_list = [[button_confirm]]
+    print("keyboard before loop: {}".format(keyboard_list))
+    for each_memo in get_all_memos():
+        keyboard_list.append([each_memo["item"]])
+        print("each memo: {}".format(each_memo))
+        print("keyboard in each loop: {}".format(keyboard_list))
+
+    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_list)
+
+    bot.sendMessage(chat_id=update.message.chat_id, text=msg_all_memos_as_show, markup=markup)
+
+
+def show_all_confirmed(bot, update):
+    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_start)
+    bot.sendMessage(chat_id=update.message.chat_id, text=msg_greeting,
+                    reply_markup=markup)
+    return -1
+
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG,
                         filename="logs/JinnyReminds." + str(date.today()) + ".log")
@@ -281,6 +302,11 @@ def main():
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler('start', start))
+
+    dispatcher.add_handler(ConversationHandler(entry_points=[RegexHandler(button_show_all, show_all)],
+                                               states={SHOW_ALL: [RegexHandler(button_confirm, show_all_confirmed)]},
+                                               fallbacks=[MessageHandler(Filters.text, fallback)],
+                                               run_async_timeout=conv_time_out))
 
     dispatcher.add_handler(ConversationHandler(entry_points=[RegexHandler(button_new_memo, add_new_memo)],
                                                states={ITEM_NAME: [MessageHandler(Filters.text, memo_name)],

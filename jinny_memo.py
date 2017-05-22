@@ -1,5 +1,13 @@
-from datetime import date
+from datetime import date, datetime
 import calendar
+
+from pymongo import MongoClient, ASCENDING
+client = MongoClient('localhost', 27017)
+db = client.JinRemind
+jin_list = db.JinList
+
+def get_all_memos():
+    return jin_list.find().sort("remindDate", ASCENDING)
 
 class memo():
     def __init__(self):
@@ -56,3 +64,9 @@ class memo():
     @moving_mth.setter
     def moving_mth(self, value):
         self._moving_mth = value
+
+    def save_data(self):
+        jin_list.insert({"item": self.memo_text,
+                         "createdDate": datetime.today(),
+                         "endDate": datetime.combine(self.memo_end_date, datetime.min.time()),
+                         "remindDate": datetime.combine(self.remind_date, datetime.min.time())})

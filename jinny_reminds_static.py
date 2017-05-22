@@ -58,3 +58,6 @@ msg_input_date = "輸入日期係：{}"
 
 msg_confirm_curr_mth = "{} 年 {} 月。"
 msg_cannot_process_date_input = "認唔到呢個日子，請重新試過。"
+
+button_confirm = "確定"
+msg_all_memos_as_show = "所有提示如下。"
