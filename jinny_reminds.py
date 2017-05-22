@@ -277,15 +277,14 @@ def fallback(bot, update):
 
 def show_all(bot, update):
     keyboard_list = [[button_confirm]]
-    print("keyboard before loop: {}".format(keyboard_list))
     for each_memo in get_all_memos():
         keyboard_list.append([each_memo["item"]])
-        print("each memo: {}".format(each_memo))
-        print("keyboard in each loop: {}".format(keyboard_list))
 
     markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_list)
 
-    bot.sendMessage(chat_id=update.message.chat_id, text=msg_all_memos_as_show, markup=markup)
+    bot.sendMessage(chat_id=update.message.chat_id, text=msg_all_memos_as_show, reply_markup=markup)
+
+    return SHOW_ALL
 
 
 def show_all_confirmed(bot, update):
