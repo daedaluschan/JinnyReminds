@@ -61,3 +61,6 @@ msg_cannot_process_date_input = "認唔到呢個日子，請重新試過。"
 
 button_confirm = "確定"
 msg_all_memos_as_show = "所有提示如下。"
+
+button_each_item_prefix = "[{}]: {}"
+button_each_item_del = "刪除[{}]"

@@ -13,6 +13,7 @@ from functools import wraps
 from itertools import islice
 
 memos = {}
+jin_list_cache = []
 ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR, SHOW_ALL = range(6)
 
 # decorator to restrict the use of the functions from unauthorized users
@@ -277,8 +278,10 @@ def fallback(bot, update):
 
 def show_all(bot, update):
     keyboard_list = [[button_confirm]]
-    for each_memo in get_all_memos():
-        keyboard_list.append([each_memo["item"]])
+    jin_list_cache = get_all_memos()
+    for idx, each_memo in enumerate(jin_list_cache):
+        keyboard_list.append([button_each_item_prefix.format(idx.__str__(), each_memo["item"]),
+                              button_each_item_del.format(idx.__str__())])
 
     markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_list)
 
