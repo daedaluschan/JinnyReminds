@@ -4,16 +4,17 @@ import logging
 from datetime import timedelta
 from jinny_memo import *
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
-                          ConversationHandler)
+                          ConversationHandler, StringRegexHandler)
 from telegram import replykeyboardmarkup
 from telegram import replykeyboardremove
 from jinny_reminds_cfg import *
 from jinny_reminds_static import *
 from functools import wraps
 from itertools import islice
+import re
 
 memos = {}
-jin_list_cache = []
+jin_list_cache = {}
 ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR, SHOW_ALL = range(6)
 
 # decorator to restrict the use of the functions from unauthorized users
@@ -278,8 +279,14 @@ def fallback(bot, update):
 
 def show_all(bot, update):
     keyboard_list = [[button_confirm]]
-    jin_list_cache = get_all_memos()
-    for idx, each_memo in enumerate(jin_list_cache):
+
+    if update.message.chat_id in jin_list_cache:
+        del jin_list_cache[update.message.chat_id]
+
+    jin_list_cache[update.message.chat_id] = []
+
+    for idx, each_memo in enumerate(get_all_memos()):
+        jin_list_cache[update.message.chat_id].append(each_memo)
         keyboard_list.append([button_each_item_prefix.format(idx.__str__(), each_memo["item"]),
                               button_each_item_del.format(idx.__str__())])
 
@@ -289,6 +296,18 @@ def show_all(bot, update):
 
     return SHOW_ALL
 
+def send_memo_detail(bot, update, idx):
+    logging.info("idx is : {}".format(idx.__str__()))
+    logging.info("jin_list_cache : {}".format(jin_list_cache[update.message.chat_id]))
+    logging.info("jin_list : {}".format(jin_list_cache[update.message.chat_id][int(idx)]))
+    show_memo = jin_list_cache[update.message.chat_id][int(idx)]
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text=msg_memo_detail.format(show_memo["item"], show_memo["endDate"], show_memo["remindDate"]))
+
+def memo_detail(bot, update):
+    matched_obj = re.match(re.compile(regex_each_item_prefix), update.message.text)
+    send_memo_detail(bot, update, matched_obj.group(1))
+    return None
 
 def show_all_confirmed(bot, update):
     markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_start)
@@ -306,7 +325,8 @@ def main():
     dispatcher.add_handler(CommandHandler('start', start))
 
     dispatcher.add_handler(ConversationHandler(entry_points=[RegexHandler(button_show_all, show_all)],
-                                               states={SHOW_ALL: [RegexHandler(button_confirm, show_all_confirmed)]},
+                                               states={SHOW_ALL: [RegexHandler(button_confirm, show_all_confirmed),
+                                                                  RegexHandler(regex_each_item_prefix, memo_detail)]},
                                                fallbacks=[MessageHandler(Filters.text, fallback)],
                                                run_async_timeout=conv_time_out))
 

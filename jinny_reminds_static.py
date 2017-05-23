@@ -64,3 +64,7 @@ msg_all_memos_as_show = "所有提示如下。"
 
 button_each_item_prefix = "[{}]: {}"
 button_each_item_del = "刪除[{}]"
+
+
+regex_each_item_prefix = "^\[(\d+)\]:.*"
+msg_memo_detail = "提示詳情：\n\n{}\n到期日：{}\n提示日：{}"
