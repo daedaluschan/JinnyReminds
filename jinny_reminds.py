@@ -15,7 +15,9 @@ import re
 
 memos = {}
 jin_list_cache = {}
-ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR, SHOW_ALL = range(6)
+captioned_memo = {}
+
+ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR, SHOW_ALL, DEL_ITEM = range(7)
 
 # decorator to restrict the use of the functions from unauthorized users
 def restricted(func):
@@ -297,9 +299,6 @@ def show_all(bot, update):
     return SHOW_ALL
 
 def send_memo_detail(bot, update, idx):
-    logging.info("idx is : {}".format(idx.__str__()))
-    logging.info("jin_list_cache : {}".format(jin_list_cache[update.message.chat_id]))
-    logging.info("jin_list : {}".format(jin_list_cache[update.message.chat_id][int(idx)]))
     show_memo = jin_list_cache[update.message.chat_id][int(idx)]
     bot.sendMessage(chat_id=update.message.chat_id,
                     text=msg_memo_detail.format(show_memo["item"], show_memo["endDate"], show_memo["remindDate"]))
@@ -307,6 +306,7 @@ def send_memo_detail(bot, update, idx):
 def memo_detail(bot, update):
     matched_obj = re.match(re.compile(regex_each_item_prefix), update.message.text)
     send_memo_detail(bot, update, matched_obj.group(1))
+    # send_memo_detail(bot, update, groups(1))
     return None
 
 def show_all_confirmed(bot, update):
@@ -314,6 +314,27 @@ def show_all_confirmed(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_greeting,
                     reply_markup=markup)
     return -1
+
+def del_memo(bot, update):
+    matched_obj = re.match(re.compile(regex_del_item_prefix), update.message.text)
+    del_idx = matched_obj.group(1)
+    send_memo_detail(bot, update, del_idx)
+
+    captioned_memo[update.message.chat_id] = int(del_idx)
+
+    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_confirm_del)
+    bot.sendMessage(chat_id=update.message.chat_id, text=msg_confirm_to_del, reply_markup=markup)
+
+    return DEL_ITEM
+
+def del_memo_Y(bot, update):
+    session = update.message.chat_id
+
+    bot.sendMessage(chat_id=session, text=del_item_by_id(jin_list_cache[session][captioned_memo[session]]["_id"]).__str__())
+    return show_all(bot, update)
+
+def del_memo_N(bot, update):
+    return show_all(bot, update)
 
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG,
@@ -326,7 +347,10 @@ def main():
 
     dispatcher.add_handler(ConversationHandler(entry_points=[RegexHandler(button_show_all, show_all)],
                                                states={SHOW_ALL: [RegexHandler(button_confirm, show_all_confirmed),
-                                                                  RegexHandler(regex_each_item_prefix, memo_detail)]},
+                                                                  RegexHandler(regex_each_item_prefix, memo_detail),
+                                                                  RegexHandler(regex_del_item_prefix, del_memo)],
+                                                       DEL_ITEM: [RegexHandler(button_confirm_Y, del_memo_Y),
+                                                                  RegexHandler(button_confirm_N, del_memo_N)]},
                                                fallbacks=[MessageHandler(Filters.text, fallback)],
                                                run_async_timeout=conv_time_out))
 

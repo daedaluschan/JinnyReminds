@@ -67,4 +67,11 @@ button_each_item_del = "刪除[{}]"
 
 
 regex_each_item_prefix = "^\[(\d+)\]:.*"
+regex_del_item_prefix = "^刪除\[(\d+)\]"
 msg_memo_detail = "提示詳情：\n\n{}\n到期日：{}\n提示日：{}"
+
+msg_confirm_to_del = "確定要刪除？"
+button_confirm_Y = "是"
+button_confirm_N = "否"
+
+keyboard_confirm_del =[[button_confirm_Y, button_confirm_N]]

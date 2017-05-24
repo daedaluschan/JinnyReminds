@@ -1,13 +1,18 @@
 from datetime import date, datetime
+from bson.objectid import ObjectId
 import calendar
-
 from pymongo import MongoClient, ASCENDING
+
 client = MongoClient('localhost', 27017)
 db = client.JinRemind
 jin_list = db.JinList
 
 def get_all_memos():
     return jin_list.find().sort("remindDate", ASCENDING)
+
+def del_item_by_id(obj_id):
+    return jin_list.delete_one({"_id": ObjectId(obj_id)}).deleted_count
+
 
 class memo():
     def __init__(self):
