@@ -1,10 +1,11 @@
 import logging
 #import calendar
 #from datetime import date
+from datetime import time
 from datetime import timedelta
 from jinny_memo import *
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
-                          ConversationHandler, StringRegexHandler)
+                          ConversationHandler, StringRegexHandler, jobqueue)
 from telegram import replykeyboardmarkup
 from telegram import replykeyboardremove
 from jinny_reminds_cfg import *
@@ -336,11 +337,21 @@ def del_memo_Y(bot, update):
 def del_memo_N(bot, update):
     return show_all(bot, update)
 
+def reminds(bot, job):
+    for chat_id in LIST_OF_ADMINS:
+        bot.sendMessage(chat_id=chat_id, text="scheduled sending")
+
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG,
                         filename="logs/JinnyReminds." + str(date.today()) + ".log")
 
     updater = Updater(TOKEN)
+    jq = updater.job_queue
+
+    jq.run_daily(callback=reminds, time=time(hour=9, minute=30))
+
+
+
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler('start', start))
