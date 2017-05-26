@@ -1,5 +1,8 @@
-conv_time_out = 10
+conv_time_out = 20
 poll_interval = 5
+
+schedule_time_hh = 23
+schedule_time_mm = 30
 
 msg_i_dont_know_u = "唔識你，唔同你講嘢。"
 log_i_dont_know_u = "唔識你（{}），唔同你講嘢。"
@@ -75,3 +78,10 @@ button_confirm_Y = "是"
 button_confirm_N = "否"
 
 keyboard_confirm_del =[[button_confirm_Y, button_confirm_N]]
+
+key_remind_module = "special"
+msg_remind_now = "[提示到期]\n\n{}"
+
+button_il_ok = "OK"
+button_il_snooze = "Snooze"
+snooze_cb_data = "{}_{}"

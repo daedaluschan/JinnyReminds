@@ -6,7 +6,7 @@ from datetime import timedelta
 from jinny_memo import *
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
                           ConversationHandler, StringRegexHandler, jobqueue)
-from telegram import replykeyboardmarkup
+from telegram import replykeyboardmarkup, inlinekeyboardbutton, inlinekeyboardmarkup
 from telegram import replykeyboardremove
 from jinny_reminds_cfg import *
 from jinny_reminds_static import *
@@ -341,6 +341,26 @@ def reminds(bot, job):
     for chat_id in LIST_OF_ADMINS:
         bot.sendMessage(chat_id=chat_id, text="scheduled sending")
 
+    if key_remind_module in jin_list_cache:
+        del jin_list_cache[key_remind_module]
+    jin_list_cache[key_remind_module] = []
+
+    reference_date = datetime.today()
+
+    for each_memo in get_all_memos():
+        if each_memo["remindDate"] < reference_date and "sentTime" not in each_memo:
+            inline_button = inlinekeyboardbutton.InlineKeyboardButton(button_il_snooze,
+                                                                      callback_data=snooze_cb_data.format(button_il_snooze,
+                                                                                                          each_memo["_id"]))
+            for chat_id in LIST_OF_ADMINS:
+                bot.sendMessage(chat_id=chat_id,
+                                text=msg_remind_now.format(msg_memo_detail.format(each_memo["item"],
+                                                                                  each_memo["endDate"],
+                                                                                  each_memo["remindDate"])),
+                                reply_markup=inlinekeyboardmarkup.InlineKeyboardMarkup([[inline_button]]))
+            update_sent_time_by_id(each_memo["_id"])
+
+
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG,
                         filename="logs/JinnyReminds." + str(date.today()) + ".log")
@@ -348,7 +368,7 @@ def main():
     updater = Updater(TOKEN)
     jq = updater.job_queue
 
-    jq.run_daily(callback=reminds, time=time(hour=9, minute=30))
+    jq.run_daily(callback=reminds, time=time(hour=schedule_time_hh, minute=schedule_time_mm))
 
 
 

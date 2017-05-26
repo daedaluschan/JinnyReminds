@@ -13,6 +13,8 @@ def get_all_memos():
 def del_item_by_id(obj_id):
     return jin_list.delete_one({"_id": ObjectId(obj_id)}).deleted_count
 
+def update_sent_time_by_id(obj_id):
+    return jin_list.find_one_and_update({"_id": ObjectId(obj_id)}, {"$set": {"sentTime": datetime.today()}})
 
 class memo():
     def __init__(self):
