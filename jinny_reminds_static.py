@@ -1,8 +1,17 @@
 conv_time_out = 20
-poll_interval = 5
+poll_interval = 10
 
-schedule_time_hh = 23
-schedule_time_mm = 30
+schedule_time_hh = 9
+schedule_time_mm = 0
+
+schedule_time_hh_2 = 12
+schedule_time_mm_2 = 0
+
+schedule_time_hh_3 = 15
+schedule_time_mm_3 = 0
+
+schedule_time_hh_4 = 18
+schedule_time_mm_4 = 0
 
 msg_i_dont_know_u = "唔識你，唔同你講嘢。"
 log_i_dont_know_u = "唔識你（{}），唔同你講嘢。"
@@ -85,3 +94,19 @@ msg_remind_now = "[提示到期]\n\n{}"
 button_il_ok = "OK"
 button_il_snooze = "Snooze"
 snooze_cb_data = "{}_{}"
+snooze_cb_regex = "{}_([\d\w]+)".format(button_il_snooze)
+
+button_next_schedule = "下一個時段"
+button_snooze_1D = "一日"
+button_snooze_2D = "兩日"
+button_snooze_3D = "三日"
+button_snooze_1W= "一星期"
+
+regex_snooze_options = "[{}|{}|{}|{}|{}]".format(button_next_schedule,
+                                                 button_snooze_1D, button_snooze_2D,
+                                                 button_snooze_3D, button_snooze_1W)
+
+keyboard_snooze = [[button_next_schedule, button_snooze_1D],
+                   [button_snooze_2D, button_snooze_3D, button_snooze_1W]]
+
+msg_snooze_till_when = "Snooze 幾耐？"

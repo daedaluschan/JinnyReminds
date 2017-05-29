@@ -5,7 +5,7 @@ from datetime import time
 from datetime import timedelta
 from jinny_memo import *
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
-                          ConversationHandler, StringRegexHandler, jobqueue)
+                          ConversationHandler, StringRegexHandler, jobqueue, CallbackQueryHandler)
 from telegram import replykeyboardmarkup, inlinekeyboardbutton, inlinekeyboardmarkup
 from telegram import replykeyboardremove
 from jinny_reminds_cfg import *
@@ -17,8 +17,10 @@ import re
 memos = {}
 jin_list_cache = {}
 captioned_memo = {}
+snoozing_memo = {}
 
-ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR, SHOW_ALL, DEL_ITEM = range(7)
+ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR, SHOW_ALL, \
+DEL_ITEM, SNOOZE = range(8)
 
 # decorator to restrict the use of the functions from unauthorized users
 def restricted(func):
@@ -280,6 +282,7 @@ def fallback(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_dont_understand)
     return None
 
+@restricted
 def show_all(bot, update):
     keyboard_list = [[button_confirm]]
 
@@ -299,23 +302,27 @@ def show_all(bot, update):
 
     return SHOW_ALL
 
+@restricted
 def send_memo_detail(bot, update, idx):
     show_memo = jin_list_cache[update.message.chat_id][int(idx)]
     bot.sendMessage(chat_id=update.message.chat_id,
                     text=msg_memo_detail.format(show_memo["item"], show_memo["endDate"], show_memo["remindDate"]))
 
+@restricted
 def memo_detail(bot, update):
     matched_obj = re.match(re.compile(regex_each_item_prefix), update.message.text)
     send_memo_detail(bot, update, matched_obj.group(1))
     # send_memo_detail(bot, update, groups(1))
     return None
 
+@restricted
 def show_all_confirmed(bot, update):
     markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_start)
     bot.sendMessage(chat_id=update.message.chat_id, text=msg_greeting,
                     reply_markup=markup)
     return -1
 
+@restricted
 def del_memo(bot, update):
     matched_obj = re.match(re.compile(regex_del_item_prefix), update.message.text)
     del_idx = matched_obj.group(1)
@@ -328,17 +335,21 @@ def del_memo(bot, update):
 
     return DEL_ITEM
 
+@restricted
 def del_memo_Y(bot, update):
     session = update.message.chat_id
 
     bot.sendMessage(chat_id=session, text=del_item_by_id(jin_list_cache[session][captioned_memo[session]]["_id"]).__str__())
+
+    del captioned_memo[session]
     return show_all(bot, update)
 
+@restricted
 def del_memo_N(bot, update):
     return show_all(bot, update)
 
 def reminds(bot, job):
-    for chat_id in LIST_OF_ADMINS:
+    for chat_id in LIST_OF_SUPER_ADMINS:
         bot.sendMessage(chat_id=chat_id, text="scheduled sending")
 
     if key_remind_module in jin_list_cache:
@@ -360,6 +371,54 @@ def reminds(bot, job):
                                 reply_markup=inlinekeyboardmarkup.InlineKeyboardMarkup([[inline_button]]))
             update_sent_time_by_id(each_memo["_id"])
 
+@restricted
+def snooze(bot, update):
+    #logging.info("callback_query : {}".format(update.callback_query))
+    #logging.info("from id : {}".format(update.callback_query.from_user.id))
+    #logging.info("callback data : {}".format(update.callback_query["data"]))
+    # bot.sendMessage(chat_id=update.message.chat_id, text="reveived snooze")
+    #logging.info("snoozing obj id : {}".format(matched_obj.group(1)))
+
+    matched_obj = re.match(re.compile(snooze_cb_regex), update.callback_query["data"])
+
+    session = update.callback_query.from_user.id
+    snoozing_memo[session] = matched_obj.group(1)
+
+    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_snooze)
+    bot.sendMessage(chat_id=session, text=msg_snooze_till_when, reply_markup=markup)
+
+    return SNOOZE
+
+@restricted
+def snooze_options(bot, update):
+    session = update.message.chat_id
+    snooze_by_id(snoozing_memo[session])
+
+    reference_date = date.today()
+    if update.message.text == button_snooze_1D:
+        obj_date = reference_date + timedelta(days=1)
+    elif update.message.text == button_snooze_2D:
+        obj_date = reference_date + timedelta(days=2)
+    elif update.message.text == button_snooze_3D:
+        obj_date = reference_date + timedelta(days=3)
+    elif update.message.text == button_snooze_1W:
+        obj_date = reference_date + timedelta(days=7)
+    else:
+        if update.message.text != button_next_schedule:
+            bot.sendMessage(chat_id=session, text=msg_cannot_process_date_input)
+            return None
+
+    if update.message.text != button_next_schedule:
+        update_remind_date_by_id(snoozing_memo[session], obj_date)
+
+    bot.sendMessage(chat_id=session, text=msg_done_add)
+
+    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_start)
+    bot.sendMessage(chat_id=session, text=msg_greeting,
+                    reply_markup=markup)
+
+    del snoozing_memo[session]
+    return -1
 
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG,
@@ -369,12 +428,18 @@ def main():
     jq = updater.job_queue
 
     jq.run_daily(callback=reminds, time=time(hour=schedule_time_hh, minute=schedule_time_mm))
-
-
+    jq.run_daily(callback=reminds, time=time(hour=schedule_time_hh_2, minute=schedule_time_mm_2))
+    jq.run_daily(callback=reminds, time=time(hour=schedule_time_hh_3, minute=schedule_time_mm_3))
+    jq.run_daily(callback=reminds, time=time(hour=schedule_time_hh_4, minute=schedule_time_mm_4))
 
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler('start', start))
+
+    dispatcher.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(snooze)],
+                                               states={SNOOZE:[RegexHandler(regex_snooze_options, snooze_options)]},
+                                               fallbacks=[MessageHandler(Filters.text, fallback)],
+                                               run_async_timeout=conv_time_out))
 
     dispatcher.add_handler(ConversationHandler(entry_points=[RegexHandler(button_show_all, show_all)],
                                                states={SHOW_ALL: [RegexHandler(button_confirm, show_all_confirmed),

@@ -16,6 +16,12 @@ def del_item_by_id(obj_id):
 def update_sent_time_by_id(obj_id):
     return jin_list.find_one_and_update({"_id": ObjectId(obj_id)}, {"$set": {"sentTime": datetime.today()}})
 
+def snooze_by_id(obj_id):
+    return jin_list.find_one_and_update({"_id": ObjectId(obj_id)}, {"$unset": {"sentTime": ""}})
+
+def update_remind_date_by_id(obj_id, remind_date):
+    return jin_list.find_one_and_update({"_id": ObjectId(obj_id)}, {"$set": {"remindDate": datetime.combine(remind_date, datetime.min.time())}})
+
 class memo():
     def __init__(self):
         self.memo_text = ""
