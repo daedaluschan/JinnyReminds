@@ -420,6 +420,21 @@ def snooze_options(bot, update):
     del snoozing_memo[session]
     return -1
 
+def cancel(bot, update):
+    session = update.message.chat_id
+    if session in memos:
+        del memos[session]
+    if session in jin_list_cache:
+        del jin_list_cache[session]
+    if session in captioned_memo:
+        del captioned_memo[session]
+    if session in snoozing_memo:
+        del snoozing_memo[session]
+
+    bot.sendMessage(chat_id=update.message.chat_id, text=msg_cacelled)
+    start(bot, update)
+    return -1
+
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG,
                         filename="logs/JinnyReminds." + str(date.today()) + ".log")
@@ -438,7 +453,8 @@ def main():
 
     dispatcher.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(snooze)],
                                                states={SNOOZE:[RegexHandler(regex_snooze_options, snooze_options)]},
-                                               fallbacks=[MessageHandler(Filters.text, fallback)],
+                                               fallbacks=[CommandHandler("cancel", cancel),
+                                                          MessageHandler(Filters.text, fallback)],
                                                run_async_timeout=conv_time_out))
 
     dispatcher.add_handler(ConversationHandler(entry_points=[RegexHandler(button_show_all, show_all)],
@@ -447,7 +463,8 @@ def main():
                                                                   RegexHandler(regex_del_item_prefix, del_memo)],
                                                        DEL_ITEM: [RegexHandler(button_confirm_Y, del_memo_Y),
                                                                   RegexHandler(button_confirm_N, del_memo_N)]},
-                                               fallbacks=[MessageHandler(Filters.text, fallback)],
+                                               fallbacks=[CommandHandler("cancel", cancel),
+                                                          MessageHandler(Filters.text, fallback)],
                                                run_async_timeout=conv_time_out))
 
     dispatcher.add_handler(ConversationHandler(entry_points=[RegexHandler(button_new_memo, add_new_memo)],
@@ -464,7 +481,8 @@ def main():
                                                                               RegexHandler(button_prev_mth, prev_mth),
                                                                               RegexHandler(button_next_mth, next_mth),
                                                                               MessageHandler(Filters.text, remind_date_invalid)]},
-                                               fallbacks=[MessageHandler(Filters.text, fallback)],
+                                               fallbacks=[CommandHandler("cancel", cancel),
+                                                          MessageHandler(Filters.text, fallback)],
                                                run_async_timeout=conv_time_out)
                            )
 

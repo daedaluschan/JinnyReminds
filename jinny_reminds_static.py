@@ -110,3 +110,5 @@ keyboard_snooze = [[button_next_schedule, button_snooze_1D],
                    [button_snooze_2D, button_snooze_3D, button_snooze_1W]]
 
 msg_snooze_till_when = "Snooze 幾耐？"
+
+msg_cacelled = "取消咗。"
