@@ -13,6 +13,9 @@ schedule_time_mm_3 = 0
 schedule_time_hh_4 = 18
 schedule_time_mm_4 = 0
 
+log_file_size_lmt = 10485760
+log_file_count_lmt = 5
+
 msg_i_dont_know_u = "唔識你，唔同你講嘢。"
 log_i_dont_know_u = "唔識你（{}），唔同你講嘢。"
 

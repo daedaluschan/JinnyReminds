@@ -1,4 +1,5 @@
 import logging
+from logging.handlers import RotatingFileHandler
 #import calendar
 #from datetime import date
 from datetime import time
@@ -436,8 +437,16 @@ def cancel(bot, update):
     return -1
 
 def main():
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG,
-                        filename="logs/JinnyReminds." + str(date.today()) + ".log")
+    #logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG,
+    #                    filename="logs/JinnyReminds." + str(date.today()) + ".log")
+
+    # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+
+    handler =  RotatingFileHandler(filename="logs/JinnyReminds.log", maxBytes=log_file_size_lmt, backupCount=log_file_count_lmt)
+    handler.setFormatter(logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s'))
+
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.DEBUG)
 
     updater = Updater(TOKEN)
     jq = updater.job_queue
