@@ -232,6 +232,11 @@ def set_remind_date(bot, update, yyyy, mm, dd):
 
     memos[update.message.chat_id].save_data()
 
+    for admin_id in LIST_OF_ADMINS:
+        bot.sendMessage(chat_id=admin_id, text=msg_add_memo_detail.format(memos[update.message.chat_id].memo_text,
+                                                                          memos[update.message.chat_id].memo_end_date,
+                                                                          memos[update.message.chat_id].remind_date))
+
     del memos[update.message.chat_id]
 
 @restricted
@@ -339,6 +344,9 @@ def del_memo(bot, update):
 @restricted
 def del_memo_Y(bot, update):
     session = update.message.chat_id
+
+    for admin_id in LIST_OF_ADMINS:
+        bot.sendMessage(chat_id=admin_id, text=msg_del_memo_detail.format(jin_list_cache[session][captioned_memo[session]]["item"]))
 
     bot.sendMessage(chat_id=session, text=del_item_by_id(jin_list_cache[session][captioned_memo[session]]["_id"]).__str__())
 

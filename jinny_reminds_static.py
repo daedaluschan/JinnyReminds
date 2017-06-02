@@ -115,3 +115,6 @@ keyboard_snooze = [[button_next_schedule, button_snooze_1D],
 msg_snooze_till_when = "Snooze 幾耐？"
 
 msg_cacelled = "取消咗。"
+
+msg_add_memo_detail = "已加入新提示：{}；到期日：{}；提示日：{}"
+msg_del_memo_detail = "已刪除提示：{}"
