@@ -372,12 +372,15 @@ def reminds(bot, job):
             inline_button = inlinekeyboardbutton.InlineKeyboardButton(button_il_snooze,
                                                                       callback_data=snooze_cb_data.format(button_il_snooze,
                                                                                                           each_memo["_id"]))
+            inline_button_recur_1M = inlinekeyboardbutton.InlineKeyboardButton(button_il_recur_pos_1M,
+                                                                               callback_data=recur_cb_data.format(each_memo["_id"]))
+
             for chat_id in LIST_OF_ADMINS:
                 bot.sendMessage(chat_id=chat_id,
                                 text=msg_remind_now.format(msg_memo_detail.format(each_memo["item"],
                                                                                   each_memo["endDate"],
                                                                                   each_memo["remindDate"])),
-                                reply_markup=inlinekeyboardmarkup.InlineKeyboardMarkup([[inline_button]]))
+                                reply_markup=inlinekeyboardmarkup.InlineKeyboardMarkup([[inline_button, inline_button_recur_1M]]))
             update_sent_time_by_id(each_memo["_id"])
 
 @restricted
@@ -388,15 +391,21 @@ def snooze(bot, update):
     # bot.sendMessage(chat_id=update.message.chat_id, text="reveived snooze")
     #logging.info("snoozing obj id : {}".format(matched_obj.group(1)))
 
+    session = update.callback_query.from_user.id
     matched_obj = re.match(re.compile(snooze_cb_regex), update.callback_query["data"])
 
-    session = update.callback_query.from_user.id
-    snoozing_memo[session] = matched_obj.group(1)
+    if matched_obj != None:
+        snoozing_memo[session] = matched_obj.group(1)
 
-    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_snooze)
-    bot.sendMessage(chat_id=session, text=msg_snooze_till_when, reply_markup=markup)
+        markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_snooze)
+        bot.sendMessage(chat_id=session, text=msg_snooze_till_when, reply_markup=markup)
 
-    return SNOOZE
+        return SNOOZE
+
+    else:
+        matched_obj = re.match(re.compile(recur_cb_regex), update.callback_query["data"])
+        start(bot, update)
+        return -1
 
 @restricted
 def snooze_options(bot, update):

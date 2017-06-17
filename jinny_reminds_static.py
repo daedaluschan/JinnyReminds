@@ -83,7 +83,7 @@ button_each_item_del = "刪除[{}]"
 
 regex_each_item_prefix = "^\[(\d+)\]:.*"
 regex_del_item_prefix = "^刪除\[(\d+)\]"
-msg_memo_detail = "提示詳情：\n\n{}\n到期日：{}\n提示日：{}"
+msg_memo_detail = "：{}\n到期日：{}\n提示日：{}"
 
 msg_confirm_to_del = "確定要刪除？"
 button_confirm_Y = "是"
@@ -92,12 +92,17 @@ button_confirm_N = "否"
 keyboard_confirm_del =[[button_confirm_Y, button_confirm_N]]
 
 key_remind_module = "special"
-msg_remind_now = "[提示到期]\n\n{}"
+msg_remind_now = "提示{}"
 
 button_il_ok = "OK"
 button_il_snooze = "Snooze"
+
+button_il_recur = "Recur{}"
+button_il_recur_pos_1M = button_il_recur.format("_1M")
+recur_cb_data = button_il_recur.format("_1M_{}")
 snooze_cb_data = "{}_{}"
 snooze_cb_regex = "{}_([\d\w]+)".format(button_il_snooze)
+recur_cb_regex = "Recur_1M_([\d\w]+)"
 
 button_next_schedule = "下一個時段"
 button_snooze_1D = "一日"
