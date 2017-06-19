@@ -22,6 +22,12 @@ def snooze_by_id(obj_id):
 def update_remind_date_by_id(obj_id, remind_date):
     return jin_list.find_one_and_update({"_id": ObjectId(obj_id)}, {"$set": {"remindDate": datetime.combine(remind_date, datetime.min.time())}})
 
+def update_end_and_remind_by_id(obj_id, end_date, remind_date):
+    return jin_list.find_one_and_update({"_id": ObjectId(obj_id)}, {"$set": {"remindDate": datetime.combine(remind_date, datetime.min.time()),
+                                                                             "endDate": datetime.combine(end_date, datetime.min.time())}})
+def get_memo_by_id(obj_id):
+    return jin_list.find_one({"_id": ObjectId(obj_id)})
+
 class memo():
     def __init__(self):
         self.memo_text = ""

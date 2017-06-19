@@ -19,9 +19,10 @@ memos = {}
 jin_list_cache = {}
 captioned_memo = {}
 snoozing_memo = {}
+recur_memo = {}
 
 ITEM_NAME, END_DATE, REMIND_DATE, END_DATE_CALENDAR, REMIND_DATE_CALENDAR, SHOW_ALL, \
-DEL_ITEM, SNOOZE = range(8)
+DEL_ITEM, SNOOZE, RECUR = range(9)
 
 # decorator to restrict the use of the functions from unauthorized users
 def restricted(func):
@@ -384,17 +385,15 @@ def reminds(bot, job):
             update_sent_time_by_id(each_memo["_id"])
 
 @restricted
-def snooze(bot, update):
-    #logging.info("callback_query : {}".format(update.callback_query))
-    #logging.info("from id : {}".format(update.callback_query.from_user.id))
-    #logging.info("callback data : {}".format(update.callback_query["data"]))
-    # bot.sendMessage(chat_id=update.message.chat_id, text="reveived snooze")
-    #logging.info("snoozing obj id : {}".format(matched_obj.group(1)))
+def handle_cb(bot, update):
+
+    logging.info("Entering handle_cb()")
 
     session = update.callback_query.from_user.id
     matched_obj = re.match(re.compile(snooze_cb_regex), update.callback_query["data"])
 
     if matched_obj != None:
+        logging.info("This is a snooze callback.")
         snoozing_memo[session] = matched_obj.group(1)
 
         markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_snooze)
@@ -403,12 +402,21 @@ def snooze(bot, update):
         return SNOOZE
 
     else:
+        logging.info("This is a recur callback.")
         matched_obj = re.match(re.compile(recur_cb_regex), update.callback_query["data"])
-        start(bot, update)
-        return -1
+        recur_memo[session] = matched_obj.group(1)
+
+        logging.info("target memo id : {}".format(recur_memo[session]))
+
+        markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_recur_remind_date)
+        bot.sendMessage(chat_id=session, text=msg_remind_date, reply_markup=markup)
+
+        return RECUR
 
 @restricted
 def snooze_options(bot, update):
+    logging.info("Entering snooze_options()")
+
     session = update.message.chat_id
     snooze_by_id(snoozing_memo[session])
 
@@ -436,6 +444,42 @@ def snooze_options(bot, update):
                     reply_markup=markup)
 
     del snoozing_memo[session]
+    return -1
+
+@restricted
+def recur_options(bot, update):
+    logging.info("Entering recur_options()")
+    session = update.message.chat_id
+
+    target_memo = get_memo_by_id(recur_memo[session])
+    memo_end_date = target_memo["endDate"]
+
+    new_end_date_yyyy = memo_end_date.year + 1 if memo_end_date.month == 12 else memo_end_date.year
+    new_end_date_mm = 1 if memo_end_date.month == 12 else memo_end_date.month + 1
+
+    new_end_date = date(new_end_date_yyyy, new_end_date_mm, memo_end_date.day)
+
+    if update.message.text == button_remind_1D:
+        new_remind_date = new_end_date + timedelta(days=-1)
+    elif update.message.text == button_remind_2D:
+        new_remind_date = new_end_date + timedelta(days=-2)
+    elif update.message.text == button_remind_3D:
+        new_remind_date = new_end_date + timedelta(days=-3)
+    elif update.message.text == button_remind_1W:
+        new_remind_date = new_end_date + timedelta(days=-7)
+    elif update.message.text == button_remind_10D:
+        new_remind_date = new_end_date + timedelta(days=-10)
+    elif update.message.text == button_remind_2W:
+        new_remind_date = new_end_date + timedelta(days=-14)
+
+    update_end_and_remind_by_id(recur_memo[session], new_end_date, new_remind_date)
+
+    bot.sendMessage(chat_id=session, text=msg_done_add)
+    markup = replykeyboardmarkup.ReplyKeyboardMarkup(keyboard=keyboard_start)
+    bot.sendMessage(chat_id=session, text=msg_greeting,
+                    reply_markup=markup)
+
+    del recur_memo[session]
     return -1
 
 def cancel(bot, update):
@@ -477,8 +521,9 @@ def main():
 
     dispatcher.add_handler(CommandHandler('start', start))
 
-    dispatcher.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(snooze)],
-                                               states={SNOOZE:[RegexHandler(regex_snooze_options, snooze_options)]},
+    dispatcher.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(handle_cb)],
+                                               states={SNOOZE:[RegexHandler(regex_snooze_options, snooze_options)],
+                                                       RECUR:[RegexHandler(regex_recur_options, recur_options)]},
                                                fallbacks=[CommandHandler("cancel", cancel),
                                                           MessageHandler(Filters.text, fallback)],
                                                run_async_timeout=conv_time_out))

@@ -10,8 +10,8 @@ schedule_time_mm_2 = 0
 schedule_time_hh_3 = 15
 schedule_time_mm_3 = 0
 
-schedule_time_hh_4 = 18
-schedule_time_mm_4 = 0
+schedule_time_hh_4 = 0
+schedule_time_mm_4 = 14
 
 log_file_size_lmt = 10485760
 log_file_count_lmt = 5
@@ -47,6 +47,7 @@ keyboard_end_date=[[button_specific_date],
 msg_remind_date = "到期前幾耐提你？"
 
 button_remind_1D = "一日前"
+button_remind_2D = "兩日前"
 button_remind_3D = "三日前"
 button_remind_1W = "一星期前"
 button_remind_10D = "十日前"
@@ -59,6 +60,12 @@ keyboard_remind_date=[[button_remind_specific],
                       [button_remind_1D, button_remind_3D, button_remind_1W],
                       [button_remind_10D, button_remind_2W, button_remind_3W],
                       [button_remind_1M]]
+
+keyboard_recur_remind_date=[[button_remind_1D, button_remind_2D, button_remind_3D],
+                      [button_remind_1W, button_remind_10D, button_remind_2W]]
+
+regex_recur_options = "[{}|{}|{}|{}|{}|{}]".format(button_remind_1D, button_remind_2D, button_remind_3D,
+                                                   button_remind_1W, button_remind_10D, button_remind_2W)
 
 msg_done_add = "Done 啦。"
 
