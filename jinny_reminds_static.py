@@ -7,11 +7,11 @@ schedule_time_mm = 0
 schedule_time_hh_2 = 12
 schedule_time_mm_2 = 0
 
-schedule_time_hh_3 = 15
+schedule_time_hh_3 = 16
 schedule_time_mm_3 = 0
 
-schedule_time_hh_4 = 0
-schedule_time_mm_4 = 14
+schedule_time_hh_4 = 20
+schedule_time_mm_4 = 0
 
 log_file_size_lmt = 10485760
 log_file_count_lmt = 5
