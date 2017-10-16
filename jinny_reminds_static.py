@@ -1,4 +1,4 @@
-conv_time_out = 20
+conv_time_out = 30
 poll_interval = 10
 
 schedule_time_hh = 9
