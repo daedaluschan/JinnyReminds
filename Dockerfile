@@ -7,4 +7,4 @@ RUN pip3 install -r requirements.txt
 
 RUN rm -Rf venv
 
-CMF bash
+CMD bash
