@@ -3,8 +3,7 @@ from bson.objectid import ObjectId
 import calendar
 from pymongo import MongoClient, ASCENDING
 
-db_host = 'localhost'
-db_port = 27017
+from jinny_reminds_cfg import *
 
 client = MongoClient(db_host, db_port)
 db = client.JinRemind
