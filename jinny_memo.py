@@ -5,7 +5,8 @@ from pymongo import MongoClient, ASCENDING
 
 from jinny_reminds_cfg import *
 
-client = MongoClient(db_host, db_port)
+# client = MongoClient(db_host, db_port)
+client = MongoClient(conn_str)
 db = client.JinRemind
 jin_list = db.JinList
 
