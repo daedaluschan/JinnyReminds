@@ -4,7 +4,7 @@
 ###### Requirements without Version Specifiers ######
 bson
 pymongo
-telegram
+python-telegram-bot
 
 
 ###### Requirements with Version Specifiers ######
