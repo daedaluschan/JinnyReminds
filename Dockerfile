@@ -8,4 +8,4 @@ RUN pip3 install -r requirements.txt
 RUN rm -Rf venv
 RUN mkdir logs
 
-CMD python ./jinny_remind.py
+CMD python ./jinny_reminds.py
