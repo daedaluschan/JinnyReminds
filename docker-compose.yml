@@ -1,0 +1,12 @@
+version: '3'
+services:
+  jinny-remind:
+    build: .
+    container_name: jinny-remind
+    networks:
+      - outside
+    command: bash 
+networks:
+  outside:
+    external:
+      name: mongonet
