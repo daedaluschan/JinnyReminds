@@ -5,7 +5,7 @@ services:
     container_name: jinny-remind
     networks:
       - outside
-    command: bash 
+    command: tail -f /dev/null 
 networks:
   outside:
     external:

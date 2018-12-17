@@ -3,7 +3,10 @@ from bson.objectid import ObjectId
 import calendar
 from pymongo import MongoClient, ASCENDING
 
-client = MongoClient('localhost', 27017)
+db_host = 'localhost'
+db_port = 27017
+
+client = MongoClient(db_host, db_port)
 db = client.JinRemind
 jin_list = db.JinList
 

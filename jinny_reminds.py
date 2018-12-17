@@ -7,7 +7,8 @@ from datetime import timedelta
 from jinny_memo import *
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
                           ConversationHandler, StringRegexHandler, jobqueue, CallbackQueryHandler)
-from telegram import replykeyboardmarkup, inlinekeyboardbutton, inlinekeyboardmarkup
+from telegram import replykeyboardmarkup
+from telegram.inline import inlinekeyboardbutton, inlinekeyboardmarkup
 from telegram import replykeyboardremove
 from jinny_reminds_cfg import *
 from jinny_reminds_static import *
