@@ -5,7 +5,12 @@ services:
     container_name: jinny-remind
     networks:
       - outside
-    command: python ./jinny_reminds.py
+    environment:
+      TZ: "Asia/Hong_Kong"
+    command: >
+      bash -c "ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && 
+      echo $TZ > /etc/timezone &&
+      python ./jinny_reminds.py"
 networks:
   outside:
     external:
