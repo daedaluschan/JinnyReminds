@@ -9,6 +9,10 @@ services:
     #   TZ: "Asia/Hong_Kong"
     environment:
       REMIND_TOKEN:
+      ADMIN_LIST:
+      SUPER_ADMIN:
+      MONGO_USER:
+      MONGO_PWD:
     command: >
       bash -c "ln -snf /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime && 
       echo Asia/Hong_Kong > /etc/timezone &&
